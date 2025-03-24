@@ -7,9 +7,10 @@ const configPath = path.join(__dirname, 'config.json');
 
 const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
 
-
 const uri = config.mongodbUri || process.env.MONGODB_URI;
+console.log("MongoDB URI:", uri); // This should print your connection string
 const client = new MongoClient(uri);
+;
 
 async function connectToDatabase() {
     try {
