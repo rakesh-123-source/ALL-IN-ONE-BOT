@@ -2,15 +2,25 @@ const { MongoClient } = require('mongodb');
 const fs = require('fs');
 const path = require('path');
 const colors = require('./UI/colors/colors');
+
 const configPath = path.join(__dirname, 'config.json');
 
-
-const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+let config = {};
+try {
+    config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    console.log("Config file contents:", config);
+} catch (err) {
+    console.error("Failed to read config.json:", err);
+}
 
 const uri = config.mongodbUri || process.env.MONGODB_URI;
-console.log("MongoDB URI:", uri); // This should print your connection string
+console.log("MongoDB URI:", uri);
+
+if (!uri) {
+    throw new Error("MongoDB URI is not defined. Please set it in config.json or as an environment variable.");
+}
+
 const client = new MongoClient(uri);
-;
 
 async function connectToDatabase() {
     try {
@@ -25,6 +35,7 @@ async function connectToDatabase() {
 }
 
 const db = client.db("discord-bot");
+
 const ticketsCollection = db.collection("tickets");
 const voiceChannelCollection = db.collection("voiceChannels");
 const centralizedControlCollection = db.collection("centralizedControl"); 
@@ -35,21 +46,21 @@ const hentaiCommandCollection = db.collection("hentailove");
 const serverConfigCollection = db.collection("serverconfig");
 const reactionRolesCollection = db.collection("reactionRoles");
 const antisetupCollection = db.collection("antisetup");
-const anticonfigcollection = db.collection("anticonfiglist")
+const anticonfigcollection = db.collection("anticonfiglist");
 const afkCollection = db.collection('afk');
 const giveawayCollection = db.collection("giveaways");
 const notificationsCollection = db.collection("notifications");
 const logsCollection = db.collection("logs");
 const nicknameConfigs = db.collection("nicknameConfig");
-const economyCollection = db.collection("economy"); 
-const usersCollection = db.collection('users'); 
+const economyCollection = db.collection("economy");
+const usersCollection = db.collection('users');
 const epicDataCollection = db.collection('epicData');
 const customCommandsCollection = db.collection('customCommands');
-const birthdayCollection = db.collection('birthday'); 
-const applicationCollection = db.collection('applications'); 
+const birthdayCollection = db.collection('birthday');
+const applicationCollection = db.collection('applications');
 const serverLevelingLogsCollection = db.collection('serverLevelingLogs');
 const commandLogsCollection = db.collection('commandLogs');
-const reportsCollection = db.collection('reports'); 
+const reportsCollection = db.collection('reports');
 const stickyMessageCollection = db.collection('stickymessages');
 const serverStatsCollection = db.collection('serverStats');
 const autoResponderCollection = db.collection('autoResponder');
@@ -59,26 +70,41 @@ const embedCollection = db.collection('aioembeds');
 const countingCollection = db.collection('countingame');
 
 async function saveGiveaway(giveaway) {
-    await giveawayCollection.updateOne(
-        { messageId: giveaway.messageId },
-        { $set: giveaway },
-        { upsert: true }
-    );
+    try {
+        await giveawayCollection.updateOne(
+            { messageId: giveaway.messageId },
+            { $set: giveaway },
+            { upsert: true }
+        );
+        console.log("Giveaway saved successfully");
+    } catch (err) {
+        console.error("Error saving giveaway:", err);
+    }
 }
 
 async function getGiveaways() {
-    return await giveawayCollection.find().toArray();
+    try {
+        return await giveawayCollection.find().toArray();
+    } catch (err) {
+        console.error("Error fetching giveaways:", err);
+        return [];
+    }
 }
 
 async function deleteGiveaway(messageId) {
-    await giveawayCollection.deleteOne({ messageId });
+    try {
+        await giveawayCollection.deleteOne({ messageId });
+        console.log("Giveaway deleted successfully");
+    } catch (err) {
+        console.error("Error deleting giveaway:", err);
+    }
 }
 
 module.exports = {
     connectToDatabase,
     ticketsCollection,
     voiceChannelCollection,
-    centralizedControlCollection, 
+    centralizedControlCollection,
     nqnCollection,
     welcomeCollection,
     giveawayCollection,
